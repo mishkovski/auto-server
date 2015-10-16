@@ -1,0 +1,19 @@
+{
+  "name": "auto-server",
+  "version": "0.0.1",
+  "description": "auto-server",
+  "main": "auto-server.js",
+  "author": {
+    "name": "Stoyan Mishkovski",
+    "email": "mishkovski@gmail.com"
+  },
+  "dependencies": {
+    "body-parser": "latest",
+    "express": "latest",
+    "morgan": "latest"
+  },
+  "devDependencies": {
+    "chai": "latest",
+    "mocha": "latest"
+  }
+}
