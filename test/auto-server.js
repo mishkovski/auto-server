@@ -13,7 +13,7 @@ describe('auto-server', function() {
     expect(autoServer.addEndpoint).to.not.equal(undefined);
   });
 
-  it.only('on start listens', function(done) {
+  it('on start listens', function(done) {
     autoServer.start({}, function() {
       var options = {
         host: 'localhost',
