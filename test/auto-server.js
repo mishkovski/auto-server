@@ -18,8 +18,8 @@ describe('auto-server', function() {
   });
 
   it('exports module functions', function() {
-    expect(autoServer.setup).to.not.equal(undefined);
     expect(autoServer.start).to.not.equal(undefined);
+    expect(autoServer.define).to.not.equal(undefined);
   });
 
   it('on start listens', function(done) {
