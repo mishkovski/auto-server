@@ -35,7 +35,7 @@ describe('auto-server', function() {
   it('defines a route', function(){
     var testRoute = '/routeOne';
 
-    autoServer.define(testRoute, function(){
+    autoServer.define({route: testRoute}, function(){
       autoServer.start({}, function() {
         requestOptions.path = testRoute;
         var req = http.request(requestOptions, function(response) {
