@@ -35,14 +35,13 @@ describe('auto-server', function() {
   it('defines a route', function(){
     var testRoute = '/routeOne';
 
-    autoServer.define({route: testRoute}, function(){
-      autoServer.start({}, function() {
-        requestOptions.path = testRoute;
-        var req = http.request(requestOptions, function(response) {
-          expect(response.statusCode).to.equal(200);
-          done();
-        }).end();
-      });
+    autoServer.define({route: testRoute});
+    autoServer.start({}, function() {
+      requestOptions.path = testRoute;
+      var req = http.request(requestOptions, function(response) {
+        expect(response.statusCode).to.equal(200);
+        done();
+      }).end();
     });
   });
 });
