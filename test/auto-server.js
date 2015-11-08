@@ -1,47 +1,58 @@
 var autoServer = require('../lib/auto-server');
 var expect = require('chai').expect;
 var http = require('http');
+var request = require('request');
+var testPort = 7777;
 
 describe('auto-server', function() {
+  afterEach(function(done) {
+    autoServer.close(done);
+  });
+
   var requestOptions = {
-    host: 'localhost',
-    port: 7777,
-    path: '/',
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json'
-    }
+    port: testPort,
+    uri: 'http://localhost:7777'
   };
 
-  it('exists', function() {
+  var testRoute = '/routeOne';
+
+  it('exists', function(done) {
     expect(autoServer).to.not.equal(undefined);
+    done();
   });
 
-  it('exports module functions', function() {
+  it('exports module functions', function(done) {
     expect(autoServer.start).to.not.equal(undefined);
     expect(autoServer.define).to.not.equal(undefined);
+    expect(autoServer.close).to.not.equal(undefined);
+    done();
   });
 
-  it('on start listens', function(done) {
-    autoServer.start({}, function() {
-      var req = http.request(requestOptions, function(response) {
-        expect(response.statusCode).to.equal(200);
+  it('defines a route', function(done) {
+    autoServer.define({
+      route: testRoute
+    });
+    autoServer.start({port: testPort}, function() {
+      requestOptions.uri += testRoute;
+      request(requestOptions, function(err, res, body) {
+        expect(res.statusCode).to.equal(200);
         done();
-      }).end();
-
+      });
     });
   });
 
-  it('defines a route', function(){
-    var testRoute = '/routeOne';
-
-    autoServer.define({route: testRoute});
-    autoServer.start({}, function() {
+  it('responds with the specified status code', function(done) {
+    var expectedStatusCode = 404;
+    autoServer.define({
+      route: testRoute,
+      statusCode: expectedStatusCode
+    });
+    autoServer.start({port: testPort}, function() {
       requestOptions.path = testRoute;
-      var req = http.request(requestOptions, function(response) {
-        expect(response.statusCode).to.equal(200);
+      request(requestOptions, function(err, res, body) {
+        expect(res.statusCode).to.equal(expectedStatusCode);
         done();
-      }).end();
+      });
     });
   });
 });

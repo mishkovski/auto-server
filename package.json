@@ -8,6 +8,7 @@
     "email": "mishkovski@gmail.com"
   },
   "dependencies": {
+    "request": "latest",
     "body-parser": "latest",
     "express": "latest",
     "morgan": "latest"
