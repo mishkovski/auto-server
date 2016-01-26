@@ -25,7 +25,9 @@ describe('auto-server', function() {
     autoServer.defineRoute({
       route: '/routeGet'
     });
-    autoServer.start({port: testPort}, function() {
+    autoServer.start({
+      port: testPort
+    }, function() {
       var requestOptions = {
         port: testPort,
         uri: 'http://localhost:7777/routeGet'
@@ -42,7 +44,9 @@ describe('auto-server', function() {
       route: '/routePost',
       verb: 'POST'
     });
-    autoServer.start({port: testPort}, function() {
+    autoServer.start({
+      port: testPort
+    }, function() {
       var requestOptions = {
         port: testPort,
         uri: 'http://localhost:7777/routePost',
@@ -61,7 +65,9 @@ describe('auto-server', function() {
       route: '/routeWithStatus',
       statusCode: expectedStatusCode
     });
-    autoServer.start({port: testPort}, function() {
+    autoServer.start({
+      port: testPort
+    }, function() {
       var requestOptions = {
         port: testPort,
         uri: 'http://localhost:7777/routeWithStatus'
@@ -72,4 +78,32 @@ describe('auto-server', function() {
       });
     });
   });
+
+  it('received returns the request data received by a route', function(done) {
+    autoServer.defineRoute({
+      route: '/someRoute',
+      verb: 'POST'
+    });
+    autoServer.start({
+      port: testPort
+    }, function() {
+      var testJson = {
+        'some-property': 'some-value'
+      };
+      var requestOptions = {
+        port: testPort,
+        uri: 'http://localhost:7777/someRoute',
+        json: {
+          'some-property': 'some-value'
+        },
+        method: 'POST'
+      };
+      request(requestOptions, function(err, res, body) {
+        expect(res.statusCode).to.equal(200);
+        expect(autoServer.received('/someRoute')).to.deep.equal(testJson);
+        done();
+      });
+    });
+  });
+
 });
