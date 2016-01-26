@@ -9,13 +9,6 @@ describe('auto-server', function() {
     autoServer.close(done);
   });
 
-  var requestOptions = {
-    port: testPort,
-    uri: 'http://localhost:7777'
-  };
-
-  var testRoute = '/routeOne';
-
   it('exists', function(done) {
     expect(autoServer).to.not.equal(undefined);
     done();
@@ -23,17 +16,20 @@ describe('auto-server', function() {
 
   it('exports module functions', function(done) {
     expect(autoServer.start).to.not.equal(undefined);
-    expect(autoServer.define).to.not.equal(undefined);
+    expect(autoServer.defineRoute).to.not.equal(undefined);
     expect(autoServer.close).to.not.equal(undefined);
     done();
   });
 
-  it('defines a route', function(done) {
-    autoServer.define({
-      route: testRoute
+  it('defineRoute by default defines GET route', function(done) {
+    autoServer.defineRoute({
+      route: '/routeGet'
     });
     autoServer.start({port: testPort}, function() {
-      requestOptions.uri += testRoute;
+      var requestOptions = {
+        port: testPort,
+        uri: 'http://localhost:7777/routeGet'
+      };
       request(requestOptions, function(err, res, body) {
         expect(res.statusCode).to.equal(200);
         done();
@@ -41,14 +37,35 @@ describe('auto-server', function() {
     });
   });
 
-  it('responds with the specified status code', function(done) {
-    var expectedStatusCode = 404;
-    autoServer.define({
-      route: testRoute,
+  it('defineRoute can define POST route', function(done) {
+    autoServer.defineRoute({
+      route: '/routePost',
+      verb: 'POST'
+    });
+    autoServer.start({port: testPort}, function() {
+      var requestOptions = {
+        port: testPort,
+        uri: 'http://localhost:7777/routePost',
+        method: 'POST'
+      };
+      request(requestOptions, function(err, res, body) {
+        expect(res.statusCode).to.equal(200);
+        done();
+      });
+    });
+  });
+
+  it('defineRoute can define a route that responds with a status code', function(done) {
+    var expectedStatusCode = 202;
+    autoServer.defineRoute({
+      route: '/routeWithStatus',
       statusCode: expectedStatusCode
     });
     autoServer.start({port: testPort}, function() {
-      requestOptions.path = testRoute;
+      var requestOptions = {
+        port: testPort,
+        uri: 'http://localhost:7777/routeWithStatus'
+      };
       request(requestOptions, function(err, res, body) {
         expect(res.statusCode).to.equal(expectedStatusCode);
         done();
