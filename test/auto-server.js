@@ -9,6 +9,25 @@ describe('auto-server', function() {
     autoServer.close(done);
   });
 
+  it('todo - forward call', function(){}
+  );
+
+  it('todo - async forward call', function(){}
+  );
+
+  it('todo - pass function', function(){}
+  );
+
+  it('todo - ssl', function(){}
+  );
+
+  it('query string parameters', function(){}
+  );
+
+  it('url path parameters', function(){}
+  );
+
+
   it('exists', function(done) {
     expect(autoServer).to.not.equal(undefined);
     done();
@@ -51,6 +70,26 @@ describe('auto-server', function() {
         port: testPort,
         uri: 'http://localhost:7777/routePost',
         method: 'POST'
+      };
+      request(requestOptions, function(err, res, body) {
+        expect(res.statusCode).to.equal(200);
+        done();
+      });
+    });
+  });
+
+  it('defineRoute can define PUT route', function(done) {
+    autoServer.defineRoute({
+      route: '/routePut',
+      verb: 'PUT'
+    });
+    autoServer.start({
+      port: testPort
+    }, function() {
+      var requestOptions = {
+        port: testPort,
+        uri: 'http://localhost:7777/routePut',
+        method: 'PUT'
       };
       request(requestOptions, function(err, res, body) {
         expect(res.statusCode).to.equal(200);
