@@ -1,3 +1,3 @@
 # auto-server
 
-https://travis-ci.org/mishkovski/auto-server.svg?branch=master
+[![Build Status](https://travis-ci.org/ericminio/eugene.svg?branch=master)](https://travis-ci.org/ericminio/eugene)
