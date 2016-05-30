@@ -2,7 +2,7 @@
   "name": "auto-server",
   "version": "1.0.0",
   "description": "auto-server",
-  "main": "auto-server.js",
+  "main": "./lib/auto-server.js",
   "author": {
     "name": "Stoyan Mishkovski",
     "email": "mishkovski@gmail.com"
