@@ -1,6 +1,6 @@
 {
   "name": "auto-server",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "auto-server",
   "main": "./lib/auto-server.js",
   "author": {
