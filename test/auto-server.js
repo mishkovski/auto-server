@@ -1,8 +1,12 @@
-var autoServer = require('../lib/auto-server');
-var expect = require('chai').expect;
-var http = require('http');
-var request = require('request');
-var testPort = 7777;
+const autoServer = require('../lib/auto-server');
+const expect = require('chai').expect;
+const http = require('http');
+const request = require('request');
+const localhost = 'http://localhost:';
+const testPort = 7777;
+const allExpressVerbs = ['get', 'post', 'put', 'head', 'delete', 'options', 'trace', 'copy', 'lock', 'mkcol', 'move', 'purge', 'propfind', 'proppatch', 'unlock', 'report', 'mkactivity', 'checkout', 'merge', 'm-search', 'notify', 'subscribe', 'unsubscribe', 'patch', 'search'];
+const verbs = ['get', 'post', 'put', 'delete', 'patch'];
+const someRoute = '/some-route';
 
 describe('auto-server', function () {
   afterEach(function (done) {
@@ -23,15 +27,46 @@ describe('auto-server', function () {
     done();
   });
 
+  var runTestForValues = function (values, testFunction) {
+    values.forEach(value => {
+      it('works for ' + value, function (done) {
+        testFunction(value, done);
+      });
+    });
+  }
+
+  function defineRouteTest(method, done) {
+    autoServer.defineRoute({
+      route: someRoute,
+      verb: method
+    });
+    autoServer.start({
+      port: testPort
+    }, function () {
+      var requestOptions = {
+        uri: localhost + testPort + someRoute,
+        method: method
+      };
+      request(requestOptions, function (err, res, body) {
+        expect(res.statusCode).to.equal(200);
+        done();
+      });
+    });
+  }
+
+  describe('defineRoute', function (done) {
+    runTestForValues(verbs, defineRouteTest);
+  });
+
   it('defineRoute by default defines a GET route', function (done) {
     autoServer.defineRoute({
-      route: '/routeGet'
+      route: someRoute
     });
     autoServer.start({
       port: testPort
     }, function () {
       var requestOptions = {
-        uri: 'http://localhost:' + testPort + '/routeGet'
+        uri: localhost + testPort + someRoute
       };
       request(requestOptions, function (err, res, body) {
         expect(res.statusCode).to.equal(200);
@@ -40,229 +75,59 @@ describe('auto-server', function () {
     });
   });
 
-  it('defineRoute can define a GET route', function (done) {
-    autoServer.defineRoute({
-      route: '/routePost',
-      verb: 'GET'
-    });
-    autoServer.start({
-      port: testPort
-    }, function () {
-      var requestOptions = {
-        uri: 'http://localhost:' + testPort + '/routePost',
-        method: 'GET'
-      };
-      request(requestOptions, function (err, res, body) {
-        expect(res.statusCode).to.equal(200);
-        done();
-      });
-    });
-  });
-
-  it('defineRoute can define a POST route', function (done) {
-    autoServer.defineRoute({
-      route: '/routePost',
-      verb: 'POST'
-    });
-    autoServer.start({
-      port: testPort
-    }, function () {
-      var requestOptions = {
-        uri: 'http://localhost:' + testPort + '/routePost',
-        method: 'POST'
-      };
-      request(requestOptions, function (err, res, body) {
-        expect(res.statusCode).to.equal(200);
-        done();
-      });
-    });
-  });
-
-  it('defineRoute can define a PUT route', function (done) {
-    autoServer.defineRoute({
-      route: '/routePut',
-      verb: 'PUT'
-    });
-    autoServer.start({
-      port: testPort
-    }, function () {
-      var requestOptions = {
-        uri: 'http://localhost:' + testPort + '/routePut',
-        method: 'PUT'
-      };
-      request(requestOptions, function (err, res, body) {
-        expect(res.statusCode).to.equal(200);
-        done();
-      });
-    });
-  });
-
-  it('defineRoute can define a DELETE route', function (done) {
-    autoServer.defineRoute({
-      route: '/routeDelete',
-      verb: 'DELETE'
-    });
-    autoServer.start({
-      port: testPort
-    }, function () {
-      var requestOptions = {
-        uri: 'http://localhost:' + testPort + '/routeDelete',
-        method: 'DELETE'
-      };
-      request(requestOptions, function (err, res, body) {
-        expect(res.statusCode).to.equal(200);
-        done();
-      });
-    });
-  });
-
-  it('defineRoute can define a PATCH route', function (done) {
-    autoServer.defineRoute({
-      route: '/routePatch',
-      verb: 'PATCH'
-    });
-    autoServer.start({
-      port: testPort
-    }, function () {
-      var requestOptions = {
-        uri: 'http://localhost:' + testPort + '/routePatch',
-        method: 'PATCH'
-      };
-      request(requestOptions, function (err, res, body) {
-        expect(res.statusCode).to.equal(200);
-        done();
-      });
-    });
-  });
-
-  it('defineRoute can define a GET route that responds with a desired status code', function (done) {
+  function defineRouteWithStatusCodeTest(method, done) {
     var expectedStatusCode = 202;
     autoServer.defineRoute({
-      route: '/routeWithStatus',
-      verb: 'GET',
+      route: someRoute,
+      verb: method,
       statusCode: expectedStatusCode
     });
     autoServer.start({
       port: testPort
     }, function () {
       var requestOptions = {
-        uri: 'http://localhost:' + testPort + '/routeWithStatus',
-        method: 'GET'
+        uri: localhost + testPort + someRoute,
+        method: method
       };
       request(requestOptions, function (err, res, body) {
         expect(res.statusCode).to.equal(expectedStatusCode);
         done();
       });
     });
+  }
+
+  describe('defineRoute with status code', function (done) {
+    runTestForValues(verbs, defineRouteWithStatusCodeTest);
   });
 
-  it('defineRoute can define a POST route that responds with a desired status code', function (done) {
-    var expectedStatusCode = 202;
+  function defineRouteWithCallbackTest(method, done) {
     autoServer.defineRoute({
-      route: '/routeWithStatus',
-      verb: 'POST',
-      statusCode: expectedStatusCode
-    });
-    autoServer.start({
-      port: testPort
-    }, function () {
-      var requestOptions = {
-        uri: 'http://localhost:' + testPort + '/routeWithStatus',
-        method: 'POST'
-      };
-      request(requestOptions, function (err, res, body) {
-        expect(res.statusCode).to.equal(expectedStatusCode);
-        done();
-      });
-    });
-  });
-
-  it('defineRoute can define a PUT route that responds with a desired status code', function (done) {
-    var expectedStatusCode = 202;
-    autoServer.defineRoute({
-      route: '/routeWithStatus',
-      verb: 'PUT',
-      statusCode: expectedStatusCode
-    });
-    autoServer.start({
-      port: testPort
-    }, function () {
-      var requestOptions = {
-        uri: 'http://localhost:' + testPort + '/routeWithStatus',
-        method: 'PUT'
-      };
-      request(requestOptions, function (err, res, body) {
-        expect(res.statusCode).to.equal(expectedStatusCode);
-        done();
-      });
-    });
-  });
-
-  it('defineRoute can define a DELETE route that responds with a desired status code', function (done) {
-    var expectedStatusCode = 202;
-    autoServer.defineRoute({
-      route: '/routeWithStatus',
-      verb: 'DELETE',
-      statusCode: expectedStatusCode
-    });
-    autoServer.start({
-      port: testPort
-    }, function () {
-      var requestOptions = {
-        uri: 'http://localhost:' + testPort + '/routeWithStatus',
-        method: 'DELETE'
-      };
-      request(requestOptions, function (err, res, body) {
-        expect(res.statusCode).to.equal(expectedStatusCode);
-        done();
-      });
-    });
-  });
-
-  it('defineRoute can define a PATCH route that responds with a desired status code', function (done) {
-    var expectedStatusCode = 202;
-    autoServer.defineRoute({
-      route: '/routeWithStatus',
-      verb: 'PATCH',
-      statusCode: expectedStatusCode
-    });
-    autoServer.start({
-      port: testPort
-    }, function () {
-      var requestOptions = {
-        uri: 'http://localhost:' + testPort + '/routeWithStatus',
-        method: 'PATCH'
-      };
-      request(requestOptions, function (err, res, body) {
-        expect(res.statusCode).to.equal(expectedStatusCode);
-        done();
-      });
-    });
-  });
-
-  it('defineRoute can define a POST route that calls the provided function', function (done) {
-    autoServer.defineRoute({
-      route: '/routeWillCall',
-      verb: 'POST',
+      route: someRoute,
+      verb: method,
       callback: () => { done(); }
     });
     autoServer.start({
       port: testPort
     }, function () {
       var requestOptions = {
-        uri: 'http://localhost:' + testPort + '/routeWillCall',
-        method: 'POST'
+        uri: localhost + testPort + someRoute,
+        method: method
       };
       request(requestOptions, function (err, res, body) {
 
       });
     });
+  }
+
+  describe('defineRoute with callback', function (done) {
+    runTestForValues(verbs, defineRouteWithCallbackTest);
   });
 
-  it('getRequestBody returns the request body received by a GET route', function (done) {
+  function getRequestBodyTest(method, done) {
+    var expectedStatusCode = 202;
     autoServer.defineRoute({
-      route: '/someRoute',
-      verb: 'GET'
+      route: someRoute,
+      verb: method
     });
     autoServer.start({
       port: testPort
@@ -271,9 +136,9 @@ describe('auto-server', function () {
         'some-property': 'some-value'
       };
       var requestOptions = {
-        uri: 'http://localhost:' + testPort + '/someRoute/?someParameter=someValue',
+        uri: localhost + testPort + someRoute,
         json: testJson,
-        method: 'GET'
+        method: method
       };
       request(requestOptions, function (err, res, body) {
         expect(res.statusCode).to.equal(200);
@@ -281,118 +146,25 @@ describe('auto-server', function () {
         done();
       });
     });
+  }
+
+  describe('getRequestBody', function (done) {
+    runTestForValues(verbs, getRequestBodyTest);
   });
 
-  it('getRequestBody returns the request body received by a POST route', function (done) {
+  function getQueryParametersTest(method, done) {
+    var queryString = '?parameterOne=valueOne&parameterTwo=valueTwo';
+    var expectedStatusCode = 202;
     autoServer.defineRoute({
-      route: '/someRoute',
-      verb: 'POST'
+      route: someRoute,
+      verb: method
     });
     autoServer.start({
       port: testPort
     }, function () {
-      var testJson = {
-        'some-property': 'some-value'
-      };
       var requestOptions = {
-        uri: 'http://localhost:' + testPort + '/someRoute',
-        json: testJson,
-        method: 'POST'
-      };
-      request(requestOptions, function (err, res, body) {
-        expect(res.statusCode).to.equal(200);
-        expect(autoServer.getRequestBody()).to.deep.equal(testJson);
-        done();
-      });
-    });
-  });
-
-  it('getRequestBody returns the request body received by a PUT route', function (done) {
-    autoServer.defineRoute({
-      route: '/someRoute',
-      verb: 'PUT'
-    });
-    autoServer.start({
-      port: testPort
-    }, function () {
-      var testJson = {
-        'some-property': 'some-value'
-      };
-      var requestOptions = {
-        uri: 'http://localhost:' + testPort + '/someRoute',
-        json: testJson,
-        method: 'PUT'
-      };
-      request(requestOptions, function (err, res, body) {
-        expect(res.statusCode).to.equal(200);
-        expect(autoServer.getRequestBody()).to.deep.equal(testJson);
-        done();
-      });
-    });
-  });
-
-  it('getRequestBody returns the request body received by a DELETE route', function (done) {
-    autoServer.defineRoute({
-      route: '/someRoute',
-      verb: 'DELETE'
-    });
-    autoServer.start({
-      port: testPort
-    }, function () {
-      var testJson = {
-        'some-property': 'some-value'
-      };
-      var requestOptions = {
-        uri: 'http://localhost:' + testPort + '/someRoute',
-        json: testJson,
-        method: 'DELETE'
-      };
-      request(requestOptions, function (err, res, body) {
-        expect(res.statusCode).to.equal(200);
-        expect(autoServer.getRequestBody()).to.deep.equal(testJson);
-        done();
-      });
-    });
-  });
-
-  it('getRequestBody returns the request body received by a PATCH route', function (done) {
-    autoServer.defineRoute({
-      route: '/someRoute',
-      verb: 'PATCH'
-    });
-    autoServer.start({
-      port: testPort
-    }, function () {
-      var testJson = {
-        'some-property': 'some-value'
-      };
-      var requestOptions = {
-        uri: 'http://localhost:' + testPort + '/someRoute',
-        json: testJson,
-        method: 'PATCH'
-      };
-      request(requestOptions, function (err, res, body) {
-        expect(res.statusCode).to.equal(200);
-        expect(autoServer.getRequestBody()).to.deep.equal(testJson);
-        done();
-      });
-    });
-  });
-
-  var queryString = '?parameterOne=valueOne&parameterTwo=valueTwo';
-
-  it('getQueryParameters returns the query string parameters received by a GET route', function (done) {
-    autoServer.defineRoute({
-      route: '/someRoute',
-      verb: 'GET'
-    });
-
-    autoServer.start({
-      port: testPort
-    }, function () {
-      var requestOptions = {
-        uri: 'http://localhost:' + testPort + '/someRoute' + queryString,
-        method: 'GET'
+        uri: localhost + testPort + someRoute + queryString,
+        method: method
       };
       request(requestOptions, function (err, res, body) {
         expect(res.statusCode).to.equal(200);
@@ -401,93 +173,9 @@ describe('auto-server', function () {
         done();
       });
     });
-  });
+  }
 
-  it('getQueryParameters returns the query string parameters received by a POST route', function (done) {
-    autoServer.defineRoute({
-      route: '/someRoute',
-      verb: 'POST'
-    });
-
-    autoServer.start({
-      port: testPort
-    }, function () {
-      var requestOptions = {
-        uri: 'http://localhost:' + testPort + '/someRoute' + queryString,
-        method: 'POST'
-      };
-      request(requestOptions, function (err, res, body) {
-        expect(res.statusCode).to.equal(200);
-        expect(autoServer.getQueryParameters().parameterOne).to.equal('valueOne');
-        expect(autoServer.getQueryParameters().parameterTwo).to.equal('valueTwo');
-        done();
-      });
-    });
-  });
-
-  it('getQueryParameters returns the query string parameters received by a PUT route', function (done) {
-    autoServer.defineRoute({
-      route: '/someRoute',
-      verb: 'PUT'
-    });
-
-    autoServer.start({
-      port: testPort
-    }, function () {
-      var requestOptions = {
-        uri: 'http://localhost:' + testPort + '/someRoute' + queryString,
-        method: 'PUT'
-      };
-      request(requestOptions, function (err, res, body) {
-        expect(res.statusCode).to.equal(200);
-        expect(autoServer.getQueryParameters().parameterOne).to.equal('valueOne');
-        expect(autoServer.getQueryParameters().parameterTwo).to.equal('valueTwo');
-        done();
-      });
-    });
-  });
-
-  it('getQueryParameters returns the query string parameters received by a DELETE route', function (done) {
-    autoServer.defineRoute({
-      route: '/someRoute',
-      verb: 'DELETE'
-    });
-
-    autoServer.start({
-      port: testPort
-    }, function () {
-      var requestOptions = {
-        uri: 'http://localhost:' + testPort + '/someRoute' + queryString,
-        method: 'DELETE'
-      };
-      request(requestOptions, function (err, res, body) {
-        expect(res.statusCode).to.equal(200);
-        expect(autoServer.getQueryParameters().parameterOne).to.equal('valueOne');
-        expect(autoServer.getQueryParameters().parameterTwo).to.equal('valueTwo');
-        done();
-      });
-    });
-  });
-
-  it('getQueryParameters returns the query string parameters received by a PATCH route', function (done) {
-    autoServer.defineRoute({
-      route: '/someRoute',
-      verb: 'PATCH'
-    });
-
-    autoServer.start({
-      port: testPort
-    }, function () {
-      var requestOptions = {
-        uri: 'http://localhost:' + testPort + '/someRoute' + queryString,
-        method: 'PATCH'
-      };
-      request(requestOptions, function (err, res, body) {
-        expect(res.statusCode).to.equal(200);
-        expect(autoServer.getQueryParameters().parameterOne).to.equal('valueOne');
-        expect(autoServer.getQueryParameters().parameterTwo).to.equal('valueTwo');
-        done();
-      });
-    });
-  });
+  describe('getQueryParameters', function (done) {
+    runTestForValues(verbs, getQueryParametersTest);
+  });  
 });
