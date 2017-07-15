@@ -15,6 +15,7 @@
   },
   "devDependencies": {
     "chai": "latest",
+    "eslint": "^4.2.0",
     "mocha": "latest"
   },
   "scripts": {
